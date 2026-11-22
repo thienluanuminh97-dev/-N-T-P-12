@@ -291,7 +291,6 @@
                         <p>Bấm vào đây để ôn tập nhé các em!</p>
                     </div>
 
-                    <!-- Đã thay đổi ID bài học Công nghệ 3 thành 'cn3_bai1' để không đè lên Robot lớp 5 -->
                     <div class="card" onclick="startLesson('cn3_bai1')">
                         <div class="card-icon">💡</div>
                         <span class="tag tag-tech">Công nghệ Lớp 3</span>
@@ -329,8 +328,8 @@
                 <h2>Chào mừng em! 🌟</h2>
                 <p>Em hãy nhập tên của mình vào đây nhé:</p>
                 
-                <!-- Bọc Form để tương thích hoàn hảo 100% với điện thoại di động -->
-                <form onsubmit="event.preventDefault(); saveStudentName();">
+                <!-- Bỏ onsubmit trực tiếp để tránh lỗi trên Safari/Zalo, dùng JavaScript quản lý form -->
+                <form id="student-login-form">
                     <input type="text" id="student-name-input" placeholder="Ví dụ: Nhã Uyên..." required>
                     <button type="submit" class="btn-3d hero-btn" style="width:100%">Bắt đầu học ngay!</button>
                 </form>
@@ -368,7 +367,7 @@
                     </button>
                 </div>
 
-                <!-- KHU VỰC MỚI: NẠP CÂU HỎI TỪ EXCEL -->
+                <!-- KHU VỰC NẠP CÂU HỎI TỪ EXCEL -->
                 <hr style="margin: 20px 0; border: 1px dashed #cbd5e1;">
                 <h3 style="text-align: left; color: var(--primary); margin-bottom: 10px; font-size: 20px;">📝 Nạp câu hỏi từ Excel</h3>
                 
@@ -404,7 +403,7 @@
         <canvas id="confetti-canvas"></canvas>
     </div>
 
-    <!-- SCRIPT XỬ LÝ (ĐÃ TÍCH HỢP XUẤT EXCEL XUYÊN TƯỜNG LỬA) -->
+    <!-- SCRIPT XỬ LÝ -->
     <script>
         let questionBank = {
             'tin3_chuot': [
@@ -450,16 +449,11 @@
         const progressEl = document.getElementById('progress-bar');
         const speechBubble = document.getElementById('speech-bubble');
         const mascot = document.getElementById('mascot');
-        
-        function updateHeaderName() {
-            // Có thể thêm logic đổi tên trên header sau nếu cần
-        }
 
-        document.getElementById('student-name-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                saveStudentName();
-            }
+        // Bắt sự kiện form submit an toàn cho mọi điện thoại
+        document.getElementById('student-login-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            saveStudentName();
         });
 
         function openLoginModal() {
@@ -478,7 +472,6 @@
             if(nameInput) {
                 studentName = nameInput;
                 safeSetStorage('LopHocThayLuan_Name', studentName);
-                updateHeaderName();
                 closeLoginModal();
                 inputEl.blur(); 
                 showMascotMessage(`Chào ${studentName}! Chúc em học tốt nhé! 🌟`);
@@ -492,7 +485,7 @@
             quizData = questionBank[lessonId];
             currentQuestion = 0; score = 0;
             const greetName = studentName ? studentName : "em";
-            showMascotMessage(`Bắt đầu ôn tập nào! Thầy Luân tin ${greetName} làm được! 💪`);
+            showMascotMessage(`Bắt đầu ôn tập nào! Thầy tin ${greetName} làm được! 💪`);
             loadQuestion();
             document.getElementById('dau-truong').scrollIntoView({ behavior: 'smooth' });
         }
@@ -547,7 +540,8 @@
             }, 2000);
         }
 
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwk3EWU3z-ASi8yvtEo2p-9XqxnI5rY63tSgZF93_Y/dev';
+        // QUAN TRỌNG: Đã đổi /dev thành /exec để học sinh không bị chặn
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwk3EWU3z-ASi8yvtEo2p-9XqxnI5rY63tSgZF93_Y/exec';
 
         function saveRecordToTeacherDB() {
             let recordsJSON = safeGetStorage('LopHocThayLuan_Records', '[]');
@@ -720,7 +714,6 @@
 
         function initApp() {
             studentName = safeGetStorage('LopHocThayLuan_Name', '');
-            updateHeaderName();
             quizData = questionBank['tin3_chuot'];
             loadQuestion();
             
@@ -807,13 +800,4 @@
             ];
             
             const ws = XLSX.utils.json_to_sheet(templateData);
-            ws['!cols'] = [{wch: 40}, {wch: 20}, {wch: 20}, {wch: 20}, {wch: 20}, {wch: 20}];
-            
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "DanhSachCauHoi");
-            XLSX.writeFile(wb, "Mau_Nhap_Cau_Hoi_Thay_Luan.xlsx");
-        }
-        initApp();
-    </script>
-</body>
-</html>
+            ws['!cols'] = [{wch: 40}, {
